@@ -2718,22 +2718,37 @@ function aiContextInfo() {
 }
 
 async function callAnthropic(key, model, ctx, conv) {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
+  // Les modèles Claude 5 réfléchissent par défaut, et cette réflexion est décomptée de max_tokens :
+  // avec un plafond bas, tout le budget part en réflexion et la réponse revient vide.
+  // On laisse donc de la marge et on limite la réflexion avec effort « low ».
+  const body = {
+    model: model.id, max_tokens: 16000,
+    output_config: { effort: 'low' },
+    system: [{ type: 'text', text: AI_SYSTEM }, { type: 'text', text: ctx, cache_control: { type: 'ephemeral' } }],
+    messages: conv,
+  };
+  const send = (b) => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({
-      model: model.id, max_tokens: 2500,
-      system: [{ type: 'text', text: AI_SYSTEM }, { type: 'text', text: ctx, cache_control: { type: 'ephemeral' } }],
-      messages: conv,
-    }),
+    body: JSON.stringify(b),
   });
-  const j = await r.json().catch(() => ({}));
+  let r = await send(body);
+  let j = await r.json().catch(() => ({}));
+  // Modèle personnalisé plus ancien qui ne connaît pas « effort » : on réessaie sans.
+  if (!r.ok && r.status === 400 && /effort|output_config/i.test((j.error && j.error.message) || '')) {
+    delete body.output_config;
+    body.max_tokens = 4000;
+    r = await send(body);
+    j = await r.json().catch(() => ({}));
+  }
   if (!r.ok) throw new Error(apiError('Anthropic', r.status, j.error && j.error.message));
   const u = j.usage || {};
   const inTok = u.input_tokens || 0, cw = u.cache_creation_input_tokens || 0, cr = u.cache_read_input_tokens || 0, out = u.output_tokens || 0;
   const mul = priceIn(model, inTok + cw + cr);
   const cost = model.in == null ? null : ((inTok * model.in + cw * (model.cw ?? model.in * 1.25) + cr * (model.cr ?? model.in * 0.1)) * mul + out * model.out * mul) / 1e6;
-  return { text: (j.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim(), inTok: inTok + cw + cr, cached: cr, out, cost };
+  const text = (j.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
+  const why = j.stop_reason === 'max_tokens' ? (text ? '' : 'limite de tokens atteinte avant le début de la réponse') : j.stop_reason === 'refusal' ? 'le modèle a refusé de répondre' : '';
+  return { text: text + (text && j.stop_reason === 'max_tokens' ? '\n\n*(réponse tronquée : limite de tokens atteinte)*' : ''), why, inTok: inTok + cw + cr, cached: cr, out, cost };
 }
 async function callOpenAI(key, model, ctx, conv) {
   const body = { model: model.id, messages: [{ role: 'system', content: AI_SYSTEM + '\n\n' + ctx }, ...conv], max_completion_tokens: 6000 };
@@ -2788,7 +2803,13 @@ async function aiSend(text) {
   renderAI();
   try {
     const r = cfg.provider === 'anthropic' ? await callAnthropic(key, model, ctx, conv) : await callOpenAI(key, model, ctx, conv);
-    UI.chat.push({ role: 'assistant', text: r.text, meta: Object.assign(r, { model: model.label.split(' — ')[0] }) });
+    const meta = Object.assign(r, { model: model.label.split(' — ')[0] });
+    if (r.text) UI.chat.push({ role: 'assistant', text: r.text, meta });
+    else {
+      // Réponse vide : on l'affiche comme une erreur (coût conservé) et on l'exclut du fil envoyé ensuite.
+      userMsg.failed = true;
+      UI.chat.push({ role: 'error', text: `Réponse vide (${r.why || 'aucun texte renvoyé'}) — ${fmtInt(r.out || 0)} tokens facturés, ${fmtUSD(r.cost)}. Renvoie la question.`, meta });
+    }
   } catch (e) {
     userMsg.failed = true;
     const msg = e instanceof TypeError ? `Connexion impossible à l'API (réseau, proxy de l'établissement ou blocage). Détail : ${e.message}` : e.message;
