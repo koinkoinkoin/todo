@@ -2608,7 +2608,16 @@ function aiModel(cfg = aiCfg()) {
 const aiKey = (cfg = aiCfg()) => (cfg.provider === 'anthropic' ? cfg.keyA : cfg.keyO).trim();
 const estTokens = (s) => Math.ceil(s.length / 3.1);
 function priceIn(m, promptTok) { return m.longAt && promptTok > m.longAt ? m.longMul : 1; }
-function estCost(m, inTok, outTok = 700) {
+// Tokens de sortie attendus (réflexion comprise) : moyenne glissante des réponses réelles, sinon 1500.
+const AI_OUT_KEY = AI_KEY + '.out';
+function aiOutEst() { const v = LS.get(AI_OUT_KEY, null); return v && v.n ? Math.round(v.avg) : 1500; }
+function aiOutLearn(out) {
+  if (!out) return;
+  const v = LS.get(AI_OUT_KEY, null) || { avg: out, n: 0 };
+  const n = Math.min(v.n + 1, 10); // pondère les 10 dernières réponses environ
+  LS.set(AI_OUT_KEY, { avg: v.avg + (out - v.avg) / n, n });
+}
+function estCost(m, inTok, outTok = aiOutEst()) {
   if (m.in == null || m.out == null) return null;
   const mul = priceIn(m, inTok);
   return (inTok * m.in * mul + outTok * m.out * mul) / 1e6;
@@ -2804,6 +2813,7 @@ async function aiSend(text) {
   try {
     const r = cfg.provider === 'anthropic' ? await callAnthropic(key, model, ctx, conv) : await callOpenAI(key, model, ctx, conv);
     const meta = Object.assign(r, { model: model.label.split(' — ')[0] });
+    aiOutLearn(r.out);
     if (r.text) UI.chat.push({ role: 'assistant', text: r.text, meta });
     else {
       // Réponse vide : on l'affiche comme une erreur (coût conservé) et on l'exclut du fil envoyé ensuite.
