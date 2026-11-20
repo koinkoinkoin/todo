@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>To-do · IP Paris</title>
 <meta name="description" content="To-do, réunions et historique — todo.json synchronisé via GitHub">
 <link rel="manifest" href="manifest.webmanifest">
@@ -756,6 +756,126 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
   .lg.lgbar { grid-template-columns: minmax(90px, 130px) minmax(0, 1fr) 32px 40px; gap: 8px; }
 }
 
+/* ====== Mobile (refonte tactile) ====== */
+.bnav, .fmore { display: none; }
+@media (max-width: 760px) {
+  :root { --bnh: calc(60px + env(safe-area-inset-bottom)); }
+  body { font-size: 16px; }
+  .app { height: 100dvh; grid-template-rows: calc(54px + env(safe-area-inset-top)) minmax(0, 1fr) var(--bnh); }
+  input, select, textarea { font-size: 16px !important; }
+
+  /* barre du haut : logo, état, annuler, réglages */
+  .topbar { padding: env(safe-area-inset-top) 10px 0; gap: 6px; }
+  .topbar .tabs, .topbar [data-act="toggle-left"], .topbar [data-act="toggle-right"], .topbar [data-act="theme"] { display: none; }
+  .brand { font-size: 17px; margin-left: 2px; }
+  .brand > :not(.logo) { display: inline; }
+  .brand .muted { display: none; }
+  .brand .logo { width: 30px; height: 30px; border-radius: 9px; }
+  .topbar .icon { width: 42px; height: 42px; }
+  .status { height: 34px; padding: 0 12px; }
+
+  /* barre de navigation du bas */
+  .bnav { display: grid; grid-template-columns: repeat(5, 1fr); background: var(--panel); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); z-index: 35; }
+  .bnav button { border: 0; background: transparent; color: var(--ink-3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; }
+  .bnav button .ic { width: 23px; height: 23px; }
+  .bnav button.on { color: var(--accent); }
+  .bnav button.on .ic { background: var(--accent-weak); border-radius: 12px; padding: 3px 14px; box-sizing: content-box; }
+
+  /* volets Réunions / Historique en plein écran */
+  .panel { position: fixed !important; top: calc(54px + env(safe-area-inset-top)) !important; bottom: var(--bnh) !important; left: 0 !important; right: 0 !important; width: auto !important; border: 0 !important; box-shadow: none !important; z-index: 30; }
+  .phead { padding: 14px 14px 10px 16px; }
+  .phead h2 { font-size: 18px; }
+  .phead .btn.sm { height: 38px; font-size: 15px; padding: 0 14px; }
+  .pbody { padding: 4px 12px 30px; }
+  .psearch input { height: 42px; }
+  .psearch .ic { top: 13px; }
+
+  /* compteurs */
+  .kpis { padding: 10px 12px 2px !important; gap: 8px; }
+  .kpi { height: 38px; border-radius: 19px; }
+  .kpi .kn { font-size: 17px; }
+  .kpi .kl { font-size: 14px; }
+
+  /* ajout rapide */
+  .qa { padding: 10px 12px 6px; gap: 8px; }
+  .qa #qaTitle { height: 46px; border-radius: 10px; }
+  .qa .btn, .qa .icon { height: 46px; min-width: 46px; border-radius: 10px; }
+  .qa-extra input, .qa-extra select { height: 44px !important; }
+
+  /* filtres repliables */
+  .filters { flex-wrap: wrap !important; overflow: visible !important; padding: 2px 12px 8px; gap: 8px; }
+  .filters > * { flex: none; }
+  .filters .search { flex: 1 1 auto; min-width: 0; }
+  .filters .search input { width: 100%; height: 42px; border-radius: 10px; padding-left: 36px; }
+  .filters .search .ic { left: 12px; top: 13px; }
+  .filters .icon.sm { width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+  .fmore { display: inline-grid; position: relative; }
+  .fmore.act::after { content: ""; position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .filters:not(.open) > .chips, .filters:not(.open) > .fsep, .filters:not(.open) > .fsel, .filters:not(.open) > .spacer { display: none; }
+  .filters.open > .chips { order: 10; width: 100%; display: flex; gap: 6px; }
+  .filters.open > .chips .fchip { flex: 1; height: 40px; font-size: 15px; justify-content: center; }
+  .filters.open > .fsel { order: 11; flex: 1 1 calc(50% - 4px); height: 42px; }
+  .filters.open > .fsep, .filters.open > .spacer { display: none; }
+
+  /* liste de tâches */
+  .tasklist { padding: 0 10px calc(20px + env(safe-area-inset-bottom)) !important; }
+  .group { margin-top: 14px; }
+  .ghead { font-size: 16px; padding: 10px 6px 8px; }
+  .ghead .gdesc { display: none; }
+  .ghead .add { opacity: 1; }
+  .gitems { border-radius: 14px; }
+  .row { min-height: 56px; padding: 10px 10px 10px 12px; column-gap: 12px; row-gap: 6px; cursor: pointer; }
+  .row:hover { background: transparent; }
+  .title { font-size: 16.5px; line-height: 1.35; }
+  .chk { width: 28px; height: 28px; border-width: 2px; }
+  .chk .ic { width: 16px; height: 16px; }
+  .chk.sm { width: 24px; height: 24px; }
+  .chk.sm .ic { width: 13px; height: 13px; }
+  .prio, button.prio { width: 26px; height: 26px; font-size: 13px; border-radius: 8px; }
+  .chip, .chip.click { height: 28px; font-size: 13.5px; padding: 0 10px; border-radius: 14px; }
+  .chip .ic { width: 14px; height: 14px; }
+  .chip.sm { height: 24px; font-size: 12.5px; }
+  .ctag { font-size: 13px; }
+  .meta { gap: 6px; }
+  .ghost-btn { width: 36px; height: 36px; border-radius: 9px; }
+  .ghost-btn .ic { width: 17px; height: 17px; }
+  .subs, .tbody .subs { padding: 0 10px 10px 52px !important; }
+  .sub { min-height: 42px; font-size: 15.5px; gap: 12px; align-items: flex-start; padding: 8px 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+  .sub:first-child { border-top: 0; }
+  .sub .stxt { padding-top: 1px; line-height: 1.4; }
+  .sub .chip, .sub .ghost-btn { margin-top: -6px; }
+  .filters:not(.open) > #subsToggle, .filters:not(.open) > [data-act="fold-all"] { display: none; }
+  .filters.open > #subsToggle, .filters.open > [data-act="fold-all"] { order: 12; }
+  .sub .ghost-btn { opacity: 1; }
+  .sub input.stitle, .sub-add input { height: 42px; }
+  .sub input[type="date"] { height: 40px; width: 150px; }
+  .tbody .desc { padding: 0 12px 4px 52px !important; }
+  .desc textarea { min-height: 42px; font-size: 16px; }
+  .tfoot { padding: 0 12px 12px 52px !important; font-size: 14px; }
+  .tfoot .btn.sm { height: 38px; font-size: 14.5px; }
+  .editor { padding: 12px; }
+  .ed-grid { grid-template-columns: 1fr !important; }
+  .empty { font-size: 15.5px; }
+
+  /* boutons, champs, menus, fenêtres */
+  .btn { height: 42px; font-size: 15px; }
+  .btn.sm { height: 36px; font-size: 14.5px; }
+  .field { font-size: 13.5px; }
+  .popover { left: 0 !important; right: 0 !important; top: auto !important; bottom: 0 !important; width: auto !important; max-height: 75dvh; overflow: auto; border-radius: 18px 18px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); font-size: 16px; z-index: 60; box-shadow: 0 -8px 30px rgba(0,0,0,.18); }
+  .popover .ph { font-size: 15px; }
+  .popover .btn { height: 46px; }
+  .modal { padding: 0; align-items: end; }
+  .modal-card, .modal-card.narrow { width: 100%; max-height: 92dvh; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+  .toasts { bottom: calc(var(--bnh) + 12px); width: calc(100% - 24px); }
+  .toast { font-size: 15px; padding: 12px 12px 12px 16px; }
+  .mcard { border-radius: 12px; }
+  .subject { font-size: 15.5px; padding: 9px 0; gap: 12px; }
+  .subject .chk { margin-top: 0; }
+  .subject-add input { height: 42px; }
+  .mhead { min-height: 48px; }
+  .ai-form textarea { min-height: 46px; }
+}
+
 </style>
 </head>
 <body>
@@ -798,6 +918,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
         <div class="qa-preview" id="qaPreview" aria-live="polite"></div>
         <div class="filters">
           <div class="search"><i data-icon="search" data-size="15"></i><input id="fq" data-in="f-q" data-fk="f-q" placeholder="Rechercher…  ( / )" aria-label="Rechercher"></div>
+          <button class="icon sm fmore" type="button" data-act="filters-more" title="Filtres"><i data-icon="sliders" data-size="18"></i></button>
           <div class="chips" id="prioChips"></div>
           <span class="fsep"></span>
           <select id="fCat" class="fsel" data-ch="f-cat" aria-label="Catégorie"></select>
@@ -835,6 +956,13 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
       <div class="pbody scroll" id="histList" data-keep-scroll></div>
     </aside>
   </main>
+  <nav class="bnav" aria-label="Navigation">
+    <button data-act="mnav" data-v="tasks"><i data-icon="list"></i>Tâches</button>
+    <button data-act="mnav" data-v="meet"><i data-icon="users"></i>Réunions</button>
+    <button data-act="mnav" data-v="hist"><i data-icon="clock"></i>Historique</button>
+    <button data-act="mnav" data-v="stats"><i data-icon="chart"></i>Stats</button>
+    <button data-act="mnav" data-v="ai"><i data-icon="spark"></i>Assistant</button>
+  </nav>
 </div>
 
 <datalist id="catList"></datalist>
@@ -1632,6 +1760,11 @@ const UI = Object.assign({
   chat: [], chatBusy: false,
 });
 if (window.innerWidth < 1180 && !LS.get(UI_KEY, null)) { UI.showLeft = false; UI.showRight = false; }
+const MQ_MOB = window.matchMedia('(max-width: 760px)');
+const isMob = () => MQ_MOB.matches;
+if (isMob() && !LS.get(UI_KEY, null)) UI.hideSubs = true;
+if (isMob() && UI.showLeft && UI.showRight) UI.showRight = false;
+MQ_MOB.addEventListener('change', () => { if (D) render(); });
 function savePrefs() {
   const { tab, showLeft, showRight, theme, groupBy, prio, cat, meet, when, collapsed, mCollapsed, stats, hideSubs } = UI;
   LS.set(UI_KEY, { tab, showLeft, showRight, theme, groupBy, prio, cat, meet, when, collapsed, mCollapsed, stats, hideSubs });
@@ -1716,6 +1849,12 @@ function renderChrome() {
   $('#view-tasks').hidden = UI.tab !== 'tasks';
   $('#view-stats').hidden = UI.tab !== 'stats';
   $('#view-ai').hidden = UI.tab !== 'ai';
+  const mv = UI.showLeft ? 'meet' : UI.showRight ? 'hist' : UI.tab;
+  $$('.bnav button').forEach((b) => b.classList.toggle('on', b.dataset.v === mv));
+  const fm = $('.fmore');
+  if (fm) fm.classList.toggle('act', !!(UI.prio.length || UI.cat || UI.meet !== 'all'));
+  $('#qaTitle').placeholder = isMob() ? 'Nouvelle tâche…' : 'Nouvelle tâche…  (#catégorie !1 @réunion >jj/mm)';
+  $('#fq').placeholder = isMob() ? 'Rechercher…' : 'Rechercher…  ( / )';
   $('[data-act="toggle-left"]').classList.toggle('on', UI.showLeft);
   $('[data-act="toggle-right"]').classList.toggle('on', UI.showRight);
   $('[data-act="theme"]').innerHTML = icon(UI.theme === 'dark' ? 'moon' : UI.theme === 'light' ? 'sun' : 'auto', 18);
@@ -1913,7 +2052,7 @@ function taskHTML(t) {
     <div class="row" ${A('select')}>
       <button class="chk" ${A('check-task')} title="Marquer comme fait (→ historique)">${icon('check')}</button>
       <button class="prio p${p}" ${A('prio-menu')} title="Priorité : ${p ? PRIO[p] : 'aucune'} — cliquer pour changer">${p || ''}</button>
-      <span class="title" ${A('edit')} contenteditable="plaintext-only" spellcheck="false" data-edit="task-title" data-fk="tt-${t.id}" title="Cliquer pour modifier">${esc(t.title)}</span>
+      ${isMob() && !sel ? `<span class="title">${esc(t.title)}</span>` : `<span class="title" ${A('edit')} contenteditable="plaintext-only" spellcheck="false" data-edit="task-title" data-fk="tt-${t.id}" title="Cliquer pour modifier">${esc(t.title)}</span>`}
       <span class="meta">${metaHTML(t)}</span>
     </div>
     ${taskBodyHTML(t)}
@@ -1957,9 +2096,9 @@ function subHTML(t, s) {
     return `<li class="sub done"><button class="chk sm done" ${A('check-sub')} title="Faite le ${esc(fmtShort(s.doneDate || today()))} — cliquer pour décocher">${icon('check')}</button><span class="stxt">${esc(s.title)}</span><span class="chip sm">${esc(fmtShort(s.doneDate || today()))}</span></li>`;
   }
   return `<li class="sub"><button class="chk sm" ${A('check-sub')} title="Cocher (→ historique)">${icon('check')}</button>
-    <span class="stxt" ${A('edit')} contenteditable="plaintext-only" spellcheck="false" data-edit="sub-title" data-fk="sx-${s.id}" title="Cliquer pour modifier">${esc(s.title)}</span>
+    ${isMob() && UI.expanded !== t.id ? `<span class="stxt" data-act="select" data-id="${t.id}">${esc(s.title)}</span>${s.due ? dueChip(s.due, A('due-menu')) : ''}</li>` : `<span class="stxt" ${A('edit')} contenteditable="plaintext-only" spellcheck="false" data-edit="sub-title" data-fk="sx-${s.id}" title="Cliquer pour modifier">${esc(s.title)}</span>
     ${s.due ? dueChip(s.due, A('due-menu')) : `<button class="ghost-btn" ${A('due-menu')} title="Échéance de la sous-tâche">${icon('cal', 13)}</button>`}
-    <button class="ghost-btn" ${A('del-sub')} title="Supprimer la sous-tâche">${icon('x', 13)}</button></li>`;
+    <button class="ghost-btn" ${A('del-sub')} title="Supprimer la sous-tâche">${icon('x', 13)}</button></li>`}`;
 }
 // Sélection sans redessiner la ligne (l'intitulé en cours d'édition reste intact)
 function setSelected(id) {
@@ -2838,6 +2977,15 @@ function parseQuick(text) {
 /* ================= Actions (clics) ================= */
 const ACTIONS = {
   'tab': (el) => { UI.tab = el.dataset.tab; savePrefs(); render(); if (UI.tab === 'ai') setTimeout(() => $('#aiInput').focus(), 0); },
+  'mnav': (el) => {
+    const v = el.dataset.v;
+    closePop(null);
+    if (v === 'meet') { UI.showLeft = !UI.showLeft; UI.showRight = false; }
+    else if (v === 'hist') { UI.showRight = !UI.showRight; UI.showLeft = false; }
+    else { UI.showLeft = false; UI.showRight = false; if (UI.tab === v && v === 'tasks') { const l = $('#taskList'); if (l) l.scrollTo({ top: 0, behavior: 'smooth' }); } UI.tab = v; }
+    savePrefs(); render();
+  },
+  'filters-more': () => { $('.filters').classList.toggle('open'); },
   'toggle-left': () => { UI.showLeft = !UI.showLeft; if (window.innerWidth < 1180 && UI.showLeft) UI.showRight = false; savePrefs(); render(); },
   'toggle-right': () => { UI.showRight = !UI.showRight; if (window.innerWidth < 1180 && UI.showRight) UI.showLeft = false; savePrefs(); render(); },
   'theme': () => { UI.theme = { auto: 'light', light: 'dark', dark: 'auto' }[UI.theme]; applyTheme(); savePrefs(); render(); toast('Thème : ' + ({ auto: 'automatique', light: 'clair', dark: 'sombre' })[UI.theme]); },
